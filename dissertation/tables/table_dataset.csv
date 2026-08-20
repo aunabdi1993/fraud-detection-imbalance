@@ -1,0 +1,14 @@
+Characteristic,Value,Note
+Total transactions,"284,807",Matches ULB benchmark
+Features,30,28 PCA components (V1-V28) + Time + Amount
+Fraudulent transactions,492,Positive class
+Legitimate transactions,"284,315",Negative class
+Fraud rate,0.1727%,Extreme imbalance
+Imbalance ratio,1:577.9,Fraud:legitimate
+Missing values,0,No imputation required
+Exact duplicate rows,"1,081 (19 fraud)",Removed prior to splitting
+Collection period,48.0 hours,"September 2013, European cardholders"
+Mean amount (legitimate),EUR 88.29,
+Mean amount (fraud),EUR 122.21,Fraud averages 38% higher
+Median amount,EUR 22.0,Heavy right skew; max EUR 25691.16
+Zero-amount transactions,"1,825",Retained; log1p handles zeros
