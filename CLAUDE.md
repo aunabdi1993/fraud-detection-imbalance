@@ -67,7 +67,7 @@ src/data_loader.py         DONE   load, validate, dedup, split, scale
 src/evaluation.py          DONE   metrics, thresholds, bootstrap, Friedman
 src/config.py              DONE   all experimental constants
 src/preprocessing.py       STUB   Week 13-14  feature engineering
-src/baseline_models.py     STUB   Week 15-16  untreated baselines
+src/baseline_models.py     DONE   Week 15-16  untreated baselines
 src/imbalance_methods.py   STUB   Month 5-6   the 15 techniques
 src/experiment_runner.py   STUB   Month 5-6   the full sweep
 src/inference_profiler.py  STUB   Month 7-8   latency (Contribution 2)

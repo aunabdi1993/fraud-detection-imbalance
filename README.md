@@ -19,7 +19,7 @@ pip install -r requirements.txt
 
 ./scripts/get_data.sh                  # dataset is not in git (150 MB)
 python src/data_loader.py              # validate, dedup, split, scale
-pytest tests/ -v                       # 31 tests
+pytest tests/ -v                       # 37 tests
 ```
 
 ## Dataset
@@ -41,7 +41,7 @@ to an exact copy of the input.
 | `src/evaluation.py` | Metrics, thresholds, bootstrap CIs, Friedman–Nemenyi | Complete |
 | `src/config.py` | Experimental constants | Complete |
 | `src/preprocessing.py` | Feature engineering | Stub |
-| `src/baseline_models.py` | Untreated baselines | Stub |
+| `src/baseline_models.py` | Untreated baselines | Complete |
 | `src/imbalance_methods.py` | The 15 techniques | Stub |
 | `src/experiment_runner.py` | Full sweep, 300 fitted models | Stub |
 | `src/inference_profiler.py` | Latency measurement | Stub |
