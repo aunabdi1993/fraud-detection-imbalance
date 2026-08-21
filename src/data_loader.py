@@ -87,9 +87,8 @@ class DataConfig:
     dedup_scope: str = "features"
 
     # --- Feature treatment -------------------------------------------------
-    drop_time: bool = True          # raw Time is an offset in seconds, not a
-                                    # generalisable feature; see Ch.3 §3.3
-    log_amount: bool = True         # Amount is heavily right-skewed (max 25,691)
+    drop_time: bool = True
+    log_amount: bool = True
     scale_features: bool = True
 
     # --- Cross-validation --------------------------------------------------
