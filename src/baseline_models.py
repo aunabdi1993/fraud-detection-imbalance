@@ -26,9 +26,12 @@ tuned with the same budget as its peers, not as these baselines.
 
 from __future__ import annotations
 
+import argparse
 import logging
+from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -36,9 +39,16 @@ from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
 from . import config
+from .data_loader import FraudDataset
 from .evaluation import CostModel, choose_threshold, evaluate
 
 logger = logging.getLogger(__name__)
+
+DISPLAY_COLUMNS = [
+    "technique", "auc_pr", "auc_roc", "precision", "recall", "f1", "mcc",
+    "threshold", f"precision_at_{config.ALERT_BUDGET}",
+    f"recall_at_{config.ALERT_BUDGET}",
+]
 
 
 def get_baseline_models(random_state: int = config.RANDOM_STATE) -> dict:
@@ -102,3 +112,35 @@ def train_baselines(X_train, y_train, X_val, y_val) -> list[dict]:
         rows.append(row)
 
     return rows
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data", default=str(config.DATA_PROCESSED))
+    parser.add_argument("--out", default=str(config.TABLES_DIR))
+    args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)-7s %(message)s"
+    )
+
+    splits, _ = FraudDataset.load_splits(args.data)
+    rows = train_baselines(
+        splits.X_train, splits.y_train, splits.X_val, splits.y_val
+    )
+
+    table = pd.DataFrame(rows)[DISPLAY_COLUMNS].sort_values(
+        "auc_pr", ascending=False
+    )
+
+    out_dir = Path(args.out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / "table1_baselines.csv"
+    table.to_csv(out_path, index=False)
+    logger.info("Saved baseline results table to %s", out_path)
+
+    print("\n" + table.to_string(index=False))
+
+
+if __name__ == "__main__":
+    main()
