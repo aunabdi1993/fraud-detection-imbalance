@@ -161,9 +161,6 @@ RUN_SUMMARY_COLUMNS = [
 ]
 
 
-# ---------------------------------------------------------------------------
-# Protocol and result containers
-# ---------------------------------------------------------------------------
 @dataclass(frozen=True)
 class TimingProtocol:
     """How many calls to time, and to discard, at each batch size.
