@@ -1,12 +1,12 @@
 """
-preprocessing.py — Optional feature engineering.
+preprocessing.py - Optional feature engineering.
 
 Maps to: Chapter 3 sec 3.3.
 STATUS: STUB — implement Week 13-14. Keep deliberately minimal.
 
 The ULB features V1-V28 are already PCA components, so classical fraud feature
-engineering (RFM, velocity, merchant aggregates) is mostly impossible: the raw
-transaction fields were destroyed by the anonymisation. State this plainly
+engineering (RFM, velocity, merchant aggregates) is mostly impossible: the anonymization destroyed the raw
+transaction fields. State this plainly
 rather than inventing features that cannot be justified.
 
 Defensible transforms:

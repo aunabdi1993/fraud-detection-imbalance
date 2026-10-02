@@ -63,7 +63,7 @@ class ResamplingSuite:
 - **Chapter 3, §3.2:** Experimental design — which techniques, how implemented
 - **Chapter 5, §5.1-5.2:** Results tables comparing techniques
 
-**Why this matters:** Lit review's conclusion ("no consistent winner") is your **justification for doing a rigorous comparison instead of proposing a novel method**. This is not a weakness — it's the whole point.
+**Why this matters:** Lit review's conclusion ("no consistent winner") is your **justification for doing a rigorous comparison instead of proposing a novel method**. This is not a weakness - it's the whole point.
 
 ---
 
