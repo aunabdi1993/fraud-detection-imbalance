@@ -76,11 +76,7 @@ from imblearn.ensemble import (
     RUSBoostClassifier,
 )
 from imblearn.over_sampling import ADASYN, SMOTE, RandomOverSampler
-from imblearn.under_sampling import (
-    EditedNearestNeighbours,
-    RandomUnderSampler,
-    TomekLinks,
-)
+from imblearn.under_sampling import RandomUnderSampler
 from lightgbm import LGBMClassifier
 from sklearn.neighbors import LocalOutlierFactor
 from xgboost import XGBClassifier
@@ -202,12 +198,17 @@ def get_sampler(name: str, random_state: int = config.RANDOM_STATE) -> Any:
         "random_undersampling": lambda: RandomUnderSampler(random_state=random_state),
         "random_oversampling": lambda: RandomOverSampler(random_state=random_state),
         "smote": smote,
+        # The cleaning step is left to imblearn's default, which cleans BOTH
+        # classes (sampling_strategy="all"), as Batista et al. (2004) do.
+        # Passing a TomekLinks / EditedNearestNeighbours instance would
+        # replace that with "auto". After SMOTE the classes are tied, and
+        # "auto" then removed nothing at all on the real data, so the first
+        # sweep's smote_tomek and smote_enn rows were plain SMOTE.
         "smote_tomek": lambda: SMOTETomek(
-            smote=smote(), tomek=TomekLinks(n_jobs=-1), random_state=random_state
+            smote=smote(), n_jobs=-1, random_state=random_state
         ),
         "smote_enn": lambda: SMOTEENN(
-            smote=smote(), enn=EditedNearestNeighbours(n_jobs=-1),
-            random_state=random_state,
+            smote=smote(), n_jobs=-1, random_state=random_state
         ),
         "adasyn": lambda: ADASYN(n_neighbors=k, random_state=random_state),
         "soa_s": lambda: SelectiveOversampler(random_state=random_state),

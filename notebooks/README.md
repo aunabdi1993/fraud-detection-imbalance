@@ -9,8 +9,11 @@ Planned:
                       rate by hour, V1-V28 separability, correlation structure.
                       Target: 10-15 figures for Ch.1 and Ch.3.
 - `02_baselines.ipynb` Week 15-16. Sanity-check baselines before the sweep.
-- `03_results.ipynb`   Month 5-6. Read experiments/results_raw.csv, build
-                      Ch.5 tables and figures.
+- `03_results_analysis.ipynb`  Ch.5 tables and figures. All computation is
+                      in src/results_analysis.py; the notebook calls it,
+                      displays results and saves them to dissertation/.
+                      Needs `make prepare`, `make sweep` and `make profile`
+                      first.
 
 Start each with:
 

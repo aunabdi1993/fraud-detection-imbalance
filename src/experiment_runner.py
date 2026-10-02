@@ -43,6 +43,8 @@ Everything in Chapter 5 is a groupby over that single file.
 Run:
     python -m src.experiment_runner                 # or: make sweep
     python -m src.experiment_runner --techniques none smote   # a subset
+    python -m src.experiment_runner --techniques smote_enn --rerun
+                                     # discard and recompute a subset
 """
 
 from __future__ import annotations
@@ -199,6 +201,7 @@ def run_sweep(
     tracking_uri: str = config.MLFLOW_TRACKING_URI,
     experiment: str = config.MLFLOW_EXPERIMENT,
     pairs: Sequence[tuple[str, str]] | None = None,
+    rerun: bool = False,
 ) -> pd.DataFrame:
     """Run every pair, checkpointing to output_csv; return the full table.
 
@@ -206,6 +209,10 @@ def run_sweep(
     interruption resumes. A pair interrupted mid-way is re-run from fold 0;
     its earlier MLflow runs are superseded, because the profiler keeps the
     most recent run per fold.
+
+    rerun=True first discards the checkpointed rows for `pairs`, so they
+    are recomputed: for use after a fix to a technique. Their new MLflow
+    runs supersede the old ones in the same way.
     """
     state = git_state()
     if state["git_dirty"]:
@@ -221,10 +228,15 @@ def run_sweep(
 
     out = Path(output_csv)
     out.parent.mkdir(parents=True, exist_ok=True)
+    pairs = list(pairs or sweep_pairs())
+    if rerun and out.exists():
+        kept = pd.read_csv(out)
+        stale = pd.Series(list(zip(kept.technique, kept.classifier))).isin(pairs)
+        logger.info("Discarding %d checkpointed rows to rerun", int(stale.sum()))
+        kept[~stale.to_numpy()].to_csv(out, index=False)
     done = _completed_pairs(out, len(cv_splits))
     _set_experiment(tracking_uri, experiment)
 
-    pairs = list(pairs or sweep_pairs())
     for i, (technique, classifier) in enumerate(pairs, 1):
         if (technique, classifier) in done:
             logger.info("[%d/%d] %s / %s: done, skipping",
@@ -252,6 +264,10 @@ def main() -> None:
     parser.add_argument("--experiment", default=config.MLFLOW_EXPERIMENT)
     parser.add_argument("--techniques", nargs="+", help="run only these")
     parser.add_argument("--classifiers", nargs="+", help="run only these")
+    parser.add_argument(
+        "--rerun", action="store_true",
+        help="recompute the selected pairs even if already checkpointed",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -269,6 +285,7 @@ def main() -> None:
     results = run_sweep(
         output_csv=args.out, data_dir=args.data,
         tracking_uri=args.tracking_uri, experiment=args.experiment, pairs=pairs,
+        rerun=args.rerun,
     )
     table = (
         results.groupby(["technique", "classifier"])[["auc_pr", "fit_seconds"]]

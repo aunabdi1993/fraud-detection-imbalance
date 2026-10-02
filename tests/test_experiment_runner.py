@@ -129,3 +129,23 @@ def test_sweep_resumes_without_rerunning_finished_pairs(sweep_dirs):
     assert not results.duplicated(["technique", "classifier", "fold"]).any()
     header = pd.read_csv(sweep_dirs["csv"], nrows=0).columns
     assert list(header) == list(results.columns)
+
+
+def test_rerun_recomputes_only_the_selected_pairs(sweep_dirs):
+    import mlflow
+
+    first = _sweep(sweep_dirs)
+    n_runs = len(mlflow.search_runs(experiment_names=["test_sweep"]))
+    redo = [PAIRS[1]]
+    results = run_sweep(
+        output_csv=sweep_dirs["csv"], data_dir=sweep_dirs["data_dir"],
+        tracking_uri=sweep_dirs["uri"], experiment="test_sweep", pairs=redo,
+        rerun=True,
+    )
+    assert len(results) == len(first)
+    assert not results.duplicated(["technique", "classifier", "fold"]).any()
+    # Only the rerun pair produced new MLflow runs.
+    assert (
+        len(mlflow.search_runs(experiment_names=["test_sweep"]))
+        == n_runs + config.N_FOLDS
+    )

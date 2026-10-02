@@ -91,11 +91,15 @@ def test_undersampling_shrinks_majority_to_minority(data):
 
 
 @pytest.mark.parametrize("technique", ["smote_tomek", "smote_enn"])
-def test_hybrid_samplers_clean_after_oversampling(data, technique):
+def test_hybrid_samplers_clean_both_classes_after_oversampling(data, technique):
+    """Batista et al. (2004) remove noisy points from BOTH classes. Checking
+    only that some rows disappear missed a bug where the majority class was
+    never touched (and, on the real data, nothing was removed at all)."""
     X, y = data
     _, y_smote = resample_fold(X, y, "smote")
     _, y_out = resample_fold(X, y, technique)
-    assert len(y_out) < len(y_smote)
+    for label in (0, 1):
+        assert (y_out == label).sum() < (y_smote == label).sum()
 
 
 def test_soa_s_never_synthesises_from_an_outlier(data):

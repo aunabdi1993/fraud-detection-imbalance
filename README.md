@@ -19,7 +19,7 @@ pip install -r requirements.txt
 
 ./scripts/get_data.sh                  # dataset is not in git (150 MB)
 python src/data_loader.py              # validate, dedup, split, scale
-pytest tests/ -v                       # 127 tests
+pytest tests/ -v                       # 143 tests
 ```
 
 ## Dataset

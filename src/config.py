@@ -97,6 +97,15 @@ SWEEP_LATENCY_TRIALS = 100
 SWEEP_LATENCY_WARMUP = 10
 RESULTS_RAW_CSV = EXPERIMENTS_DIR / "results_raw.csv"
 
+# --- Results analysis (Chapter 5) ------------------------------------------
+N_TOP_TECHNIQUES = 5            # refitted and evaluated on the test split
+OPERATING_MIN_PRECISION = 0.9   # the "precision-first" operating point
+# The data covers 48 hours, so a day is half the transactions. Converts the
+# daily ALERT_BUDGET into an alert rate, and test alerts back into a day.
+TRANSACTIONS_PER_DAY = 284_807 / 2
+SHAP_N_LEGIT = 2000             # legitimate rows sampled beside every fraud
+TABLE_PRECISION = 4             # decimals in the CSV tables
+
 # --- Experiment tracking ---------------------------------------------------
 # experiment_runner.py writes here and inference_profiler.py reads from here.
 MLFLOW_TRACKING_URI = f"sqlite:///{(ROOT / 'mlflow.db').as_posix()}"
