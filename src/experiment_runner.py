@@ -22,6 +22,13 @@ fit_seconds, inference_ms_per_record, git commit hash. The commit hash matters
 — when a number in Chapter 5 is queried six months from now, you need to
 recover the exact code that produced it.
 
+Log the fitted model too, in the format inference_profiler.py loads (see
+'MLflow contract' in its docstring): experiment config.MLFLOW_EXPERIMENT,
+params technique/classifier/fold, metrics auc_pr/fit_seconds, and
+mlflow.sklearn.log_model(model, name=config.MLFLOW_MODEL_ARTIFACT,
+serialization_format=config.MLFLOW_SERIALIZATION_FORMAT). One model per
+(technique, classifier) is enough; the profiler takes the lowest fold.
+
 Output: experiments/results_raw.csv, one row per (technique, classifier, fold).
 Everything in Chapter 5 is a groupby over that single file.
 """

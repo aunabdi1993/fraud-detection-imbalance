@@ -1,4 +1,4 @@
-.PHONY: help setup data prepare test lint clean api
+.PHONY: help setup data prepare test lint clean api profile
 
 help:
 	@echo "make setup    - create venv and install dependencies"
@@ -6,6 +6,7 @@ help:
 	@echo "make prepare  - validate, split and scale; writes data/processed"
 	@echo "make test     - run the test suite"
 	@echo "make api      - run the scoring API locally"
+	@echo "make profile  - measure inference latency of every logged model"
 	@echo "make clean    - remove caches and processed artefacts"
 
 setup:
@@ -23,6 +24,9 @@ test:
 
 api:
 	uvicorn api.main:app --reload
+
+profile:
+	python -m src.inference_profiler
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true

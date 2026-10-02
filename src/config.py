@@ -68,3 +68,28 @@ ALL_TECHNIQUES = RESAMPLING_TECHNIQUES + ALGORITHM_TECHNIQUES
 # --- Deployment constraints (Gap 1) ----------------------------------------
 LATENCY_BUDGET_MS = 100.0   # p99 target for real-time scoring
 N_LATENCY_TRIALS = 1000
+
+# Latency protocol (Chapter 5 sec 5.4). Batch size 1 is the headline: a
+# real-time fraud API scores one transaction at a time. Larger batches
+# characterise bulk re-scoring throughput and are reported separately.
+LATENCY_BATCH_SIZES = (1, 100, 1_000, 10_000)
+LATENCY_PERCENTILES = (50, 95, 99)
+N_LATENCY_WARMUP = 100      # discarded single-record calls before timing
+N_BATCH_TRIALS = 100        # timed calls per batch size > 1
+N_BATCH_WARMUP = 5          # discarded calls per batch size > 1
+# Timing runs single-threaded, so CPU time / wall time should not exceed ~1.
+# Above this ratio the thread pinning failed and the row is not comparable.
+SINGLE_THREAD_CPU_TOLERANCE = 1.1
+# Pause after pinning, before timing, so worker threads still spin-waiting
+# from earlier multi-threaded BLAS work can go idle (see single_threaded()).
+THREAD_SETTLE_SECONDS = 0.5
+
+# --- Experiment tracking ---------------------------------------------------
+# experiment_runner.py writes here and inference_profiler.py reads from here.
+MLFLOW_TRACKING_URI = f"sqlite:///{(ROOT / 'mlflow.db').as_posix()}"
+MLFLOW_EXPERIMENT = "imbalance_sweep"
+MLFLOW_MODEL_ARTIFACT = "model"
+# Recent MLflow (3.16 when written) defaults to skops, which refuses tree
+# models unless every internal type is whitelisted, and cannot hold the
+# custom focal-loss objective. cloudpickle stores every estimator as-is.
+MLFLOW_SERIALIZATION_FORMAT = "cloudpickle"
