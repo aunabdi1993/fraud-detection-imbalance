@@ -1,17 +1,14 @@
 # MSc Dissertation Complete Guide
 ## Class Imbalance Handling for Financial Fraud Detection
 
-**Author:** [Your Name]  
-**Timeline:** August 7, 2026 - January 31, 2027  
-**Target Submission:** January 7, 2027  
-**Expected Grade:** Merit to Distinction  
-
+**Author:** Aun Abdi
+**Target Submission:** 31st March, 2027
 ---
 
 # TABLE OF CONTENTS
 
 1. Executive Summary
-2. Accelerated Timeline (Aug 7 - Jan 31)
+2. Accelerated Timeline (Aug 7 - March 31)
 3. Literature Review (5,000 words)
 4. Implementation Guide
 5. Weekly Action Checklists
@@ -21,40 +18,6 @@
 ---
 
 # PART 1: EXECUTIVE SUMMARY
-
-## Situation
-- **Current date:** August 7, 2026
-- **Target submission:** January 31, 2027
-- **Time available:** 5.7 months (24 weeks)
-- **Hours/week available:** 6.5 hours
-- **Total hours available:** ~150 hours
-- **Using:** Assistive coding (Claude Code for 80%+ of development)
-
-## Key Change from Original Plan
-
-**Original Plan (Feb-Dec, 11 months):**
-- 308 hours total
-- 12 techniques over 2 months
-- 100 hours writing in December crunch
-- API as nice-to-have
-- Latency analysis optional
-
-**NEW PLAN (Aug-Jan, 5.7 months with Assistive Coding):**
-- 105 hours your time (I write most code)
-- **12 techniques** (kept, not reduced)
-- **API deployed** (included, not optional)
-- **Latency analysis** (your novel contribution)
-- 54 hours writing spread over 8 weeks (realistic)
-- 45-hour buffer for unexpected issues
-
-## Your Advantages
-
-✅ **Assistive coding:** I write code, you review (10-15 min per module, not hours)  
-✅ **Experiments run overnight:** You sleep, models train in background  
-✅ **Full scope:** No descoping techniques or API  
-✅ **Novel contribution:** Latency-accuracy trade-off (lit review Gap 1)  
-✅ **Job portfolio:** Deployed system + rigorous evaluation  
-✅ **Realistic pace:** 4.4 hrs/week average (you have 6.5 available)  
 
 ## Critical Success Metrics
 

@@ -13,7 +13,7 @@ deployable scoring API.
 ## Quick start
 
 ```bash
-git clone <your-repo-url> && cd fraud-detection-imbalance
+git clone https://github.com/aunabdi1993/fraud-detection-imbalance.git && cd fraud-detection-imbalance
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
@@ -61,7 +61,7 @@ reports AUC-PR despite broad agreement that it is appropriate under imbalance.
 
 **Thresholds are selected on validation and applied unchanged to test.**
 
-**Fixed seed, identical pipeline and tuning budget across every technique** —
+**Fixed seed, identical pipeline and tuning budget across every technique** -
 addressing the cross-study comparability gap identified in the review.
 
 Two findings from data validation are documented in `dissertation/chapters/ch3_methodology.md`:
@@ -90,8 +90,3 @@ make test       # run the suite
 make api        # serve the scoring endpoint locally
 ```
 
-## Notes
-
-Submission: 7 January 2027. See `CLAUDE.md` for working conventions when using
-assistive coding tools, and `docs/reference/` for the planning documents and
-literature review.
