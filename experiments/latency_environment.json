@@ -1,0 +1,64 @@
+{
+  "timestamp_utc": "2026-10-02T18:53:56+00:00",
+  "git_commit": "f7cb9b533617e0c3a3ea4daf319e5609f912eb78",
+  "git_dirty": true,
+  "python": "3.13.6",
+  "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+  "cpu_model": "Apple M1 Pro",
+  "cores_logical": 8,
+  "cores_physical": 8,
+  "ram_gb": 16.0,
+  "packages": {
+    "numpy": "2.5.2",
+    "scipy": "1.18.0",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.9.0",
+    "imbalanced-learn": "0.14.2",
+    "xgboost": "3.4.1",
+    "lightgbm": "4.7.0",
+    "mlflow": "3.16.1",
+    "threadpoolctl": "3.6.0"
+  },
+  "omp_num_threads_env": null,
+  "thread_pools": [
+    {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "version": null,
+      "num_threads": 8
+    },
+    {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "version": null,
+      "num_threads": 8
+    }
+  ],
+  "timer": "time.perf_counter",
+  "timer_resolution_s": 4.166666666666666e-08,
+  "protocol": {
+    "batch_sizes": [
+      1,
+      100,
+      1000,
+      10000
+    ],
+    "n_trials": 1000,
+    "n_warmup": 100,
+    "n_batch_trials": 100,
+    "n_batch_warmup": 5,
+    "random_state": 42
+  },
+  "threads_during_timing": 1,
+  "gc_disabled_during_timing": true,
+  "input_pool": {
+    "split": "validation",
+    "n_rows": 41350,
+    "n_features": 29,
+    "dataset_sha256": "76274b691b16a6c49d3f159c883398e03ccd6d1ee12d9d8ee38f4b4b98551a89"
+  },
+  "mlflow": {
+    "tracking_uri": "sqlite:////Users/aunabdi/Documents/GitHub/fraud-detection-imbalance/mlflow.db",
+    "experiment": "imbalance_sweep"
+  }
+}

@@ -338,9 +338,14 @@ def nemenyi_critical_difference(n_techniques: int, n_folds: int) -> float:
     Two techniques differ significantly if their mean ranks differ by more
     than this value. Report it as the CD bar on the rank plot (Chapter 5).
     """
-    if n_techniques not in _Q_ALPHA_05:
-        raise ValueError(f"No tabulated q_alpha for k={n_techniques}")
-    q = _Q_ALPHA_05[n_techniques]
+    if n_techniques < 2:
+        raise ValueError("Nemenyi needs at least 2 techniques")
+    # Demsar's table stops at k=20. His values are the studentised range
+    # statistic divided by sqrt(2), so larger k is computed the same way (it
+    # reproduces the table to within its 3-decimal rounding).
+    q = _Q_ALPHA_05.get(n_techniques)
+    if q is None:
+        q = stats.studentized_range.ppf(0.95, n_techniques, np.inf) / np.sqrt(2)
     k, n = n_techniques, n_folds
     return float(q * np.sqrt(k * (k + 1) / (6 * n)))
 

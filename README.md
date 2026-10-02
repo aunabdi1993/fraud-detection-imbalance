@@ -19,7 +19,7 @@ pip install -r requirements.txt
 
 ./scripts/get_data.sh                  # dataset is not in git (150 MB)
 python src/data_loader.py              # validate, dedup, split, scale
-pytest tests/ -v                       # 37 tests
+pytest tests/ -v                       # 143 tests
 ```
 
 ## Dataset
@@ -42,9 +42,9 @@ to an exact copy of the input.
 | `src/config.py` | Experimental constants | Complete |
 | `src/preprocessing.py` | Feature engineering | Stub |
 | `src/baseline_models.py` | Untreated baselines | Complete |
-| `src/imbalance_methods.py` | The 15 techniques | Stub |
-| `src/experiment_runner.py` | Full sweep, 300 fitted models | Stub |
-| `src/inference_profiler.py` | Latency measurement | Stub |
+| `src/imbalance_methods.py` | The 15 techniques | Complete |
+| `src/experiment_runner.py` | Full sweep, 205 fitted models | Complete |
+| `src/inference_profiler.py` | Latency measurement | Complete |
 | `api/main.py` | FastAPI scoring service | Stub |
 
 Each stub carries a detailed specification in its module docstring.
@@ -87,6 +87,8 @@ docs/reference/ planning documents and literature review
 ```bash
 make prepare    # build data/processed from the raw CSV
 make test       # run the suite
+make sweep      # all 41 technique/classifier pairs x 5 folds (hours)
+make profile    # latency of every model the sweep logged to MLflow
 make api        # serve the scoring endpoint locally
 ```
 
