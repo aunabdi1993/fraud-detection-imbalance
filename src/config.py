@@ -65,6 +65,14 @@ ALGORITHM_TECHNIQUES = [
 
 ALL_TECHNIQUES = RESAMPLING_TECHNIQUES + ALGORITHM_TECHNIQUES
 
+# Technique settings (Chapter 3 sec 3.5). Library defaults unless stated.
+# Every technique gets the same tuning budget, zero searched trials, so no
+# technique is advantaged by extra tuning (rule 4, Gap 3).
+SMOTE_K_NEIGHBORS = 5        # Chawla et al. (2002) default
+SOA_LOF_NEIGHBORS = 20       # LocalOutlierFactor default, fraud class only
+FOCAL_GAMMA = 2.0            # Lin et al. (2017) recommended value, fixed
+FOCAL_MIN_HESSIAN = 1e-6     # focal-loss Hessian can go negative; clip it
+
 # --- Deployment constraints (Gap 1) ----------------------------------------
 LATENCY_BUDGET_MS = 100.0   # p99 target for real-time scoring
 N_LATENCY_TRIALS = 1000
@@ -83,11 +91,19 @@ SINGLE_THREAD_CPU_TOLERANCE = 1.1
 # Pause after pinning, before timing, so worker threads still spin-waiting
 # from earlier multi-threaded BLAS work can go idle (see single_threaded()).
 THREAD_SETTLE_SECONDS = 0.5
+# Quick per-fold latency logged by the sweep. The rigorous measurement is
+# inference_profiler.py; this is a sanity figure recorded with each run.
+SWEEP_LATENCY_TRIALS = 100
+SWEEP_LATENCY_WARMUP = 10
+RESULTS_RAW_CSV = EXPERIMENTS_DIR / "results_raw.csv"
 
 # --- Experiment tracking ---------------------------------------------------
 # experiment_runner.py writes here and inference_profiler.py reads from here.
 MLFLOW_TRACKING_URI = f"sqlite:///{(ROOT / 'mlflow.db').as_posix()}"
 MLFLOW_EXPERIMENT = "imbalance_sweep"
+# Fixed, so model artifacts land in the same place whatever directory the
+# sweep is launched from (MLflow's default is relative to the cwd).
+MLFLOW_ARTIFACT_LOCATION = (ROOT / "mlruns").as_uri()
 MLFLOW_MODEL_ARTIFACT = "model"
 # Recent MLflow (3.16 when written) defaults to skops, which refuses tree
 # models unless every internal type is whitelisted, and cannot hold the

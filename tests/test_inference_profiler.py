@@ -80,7 +80,8 @@ def test_summary_percentiles_are_ordered(data, forest):
     X, _ = data
     for result in profile_model(forest, X, FAST):
         s = result.summary()
-        assert 0 < s["min_ms"] <= s["p50_ms"] <= s["p95_ms"] <= s["p99_ms"] <= s["max_ms"]
+        ordered = [s[k] for k in ("min_ms", "p50_ms", "p95_ms", "p99_ms", "max_ms")]
+        assert 0 < ordered[0] and ordered == sorted(ordered)
 
 
 def test_summary_statistics_on_known_timings():
@@ -223,6 +224,10 @@ def sweep(tmp_path_factory, data):
     root = tmp_path_factory.mktemp("sweep")
     uri = f"sqlite:///{(root / 'mlflow.db').as_posix()}"
     mlflow.set_tracking_uri(uri)
+    # Explicit artifact location, or MLflow writes models into ./mlruns.
+    mlflow.create_experiment(
+        config.MLFLOW_EXPERIMENT, artifact_location=(root / "artifacts").as_uri()
+    )
     mlflow.set_experiment(config.MLFLOW_EXPERIMENT)
 
     X, y = data

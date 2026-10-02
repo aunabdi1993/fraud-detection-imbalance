@@ -564,6 +564,19 @@ def _git(args: list[str]) -> str | None:
     return out.stdout.strip()
 
 
+def git_state() -> dict:
+    """Commit the results came from, and whether the working tree was clean.
+
+    A dirty tree means the numbers came from code that is not in any commit,
+    which breaks "every reported number comes from a committed script".
+    """
+    status = _git(["status", "--porcelain"])
+    return {
+        "git_commit": _git(["rev-parse", "HEAD"]),
+        "git_dirty": None if status is None else bool(status),
+    }
+
+
 def _package_version(name: str) -> str | None:
     try:
         return metadata.version(name)
@@ -599,11 +612,9 @@ def environment_info() -> dict:
     answers "was BLAS threading active?"; the timing itself ran pinned to one
     thread, which each row's cpu_utilisation confirms.
     """
-    git_status = _git(["status", "--porcelain"])
     return {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "git_commit": _git(["rev-parse", "HEAD"]),
-        "git_dirty": None if git_status is None else bool(git_status),
+        **git_state(),
         "python": platform.python_version(),
         "platform": platform.platform(),
         "cpu_model": _cpu_model(),
