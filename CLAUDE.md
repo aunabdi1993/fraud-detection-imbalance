@@ -12,12 +12,9 @@ MSc dissertation. Research question:
 This is **not** a novel-algorithm project. The contribution is a rigorous,
 controlled comparison of existing techniques, plus latency characterisation and
 a working deployed API. The literature review concluded that no technique
-consistently wins (Brandt & Lanzén 2020; Gnip et al. 2021) — that finding is the
+consistently wins (Brandt & Lanzén 2020; Gnip et al. 2021) - that finding is the
 *justification* for a careful comparison, not a weakness. Do not suggest
 inventing a new sampling method.
-
-Submission: **7 January 2027**. Roughly 6–7 hours per week. Prefer finishing a
-small thing properly over starting a large thing.
 
 ## Dataset
 
