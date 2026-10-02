@@ -14,85 +14,83 @@ Report where differences fall inside the bootstrap CI — that is itself a findi
 
 ## 5.4 Latency Characterisation  [CONTRIBUTION 2]
 
-> **DRAFT 1 — numbers pending.** `src/inference_profiler.py` is not yet implemented and no technique beyond the untreated baselines has been trained, so every `[TBD]` below is a measurement still to be taken. No latency figure in this section has been measured; nothing here should be quoted until the cells are filled from `experiments/latency_results.csv`.
+> **DRAFT 1.** All numbers come from `experiments/latency_results.csv` (profiler, batch size 1) and `experiments/results_raw.csv`. Table 3 is `dissertation/tables/table3_latency.csv`; Figure 8 is `dissertation/figures/fig8_auc_pr_vs_latency.png`. `smote_tomek` and `smote_enn` rows are excluded from every claim below: the committed sweep predates the fix that made those cleaners actually clean (the `smote_tomek` rows are numerically identical to `smote`), so they must be re-run (`experiment_runner --rerun`) before being quoted.
 
-Accuracy alone does not decide whether an imbalance-handling technique can be deployed. A card-payment authorisation decision is made while the customer waits, so a model that wins on AUC-PR but breaches the response-time budget is not a usable fraud detector. Only 2 of the 21 sources reviewed in Chapter 2 report inference latency at all, and none examine how the choice of imbalance technique affects it (Gap 1). This section addresses that gap directly.
+Predictive accuracy alone does not decide whether an imbalance-handling technique can be deployed. A card-payment authorisation is made while the customer waits, so a detector that wins on AUC-PR but breaches the response-time budget is not usable. Only 2 of the 21 sources reviewed in Chapter 2 report inference latency, and none examine how the choice of imbalance technique affects it (Gap 1). This section addresses that gap.
 
 ### 5.4.1 Protocol
 
-Each fitted model was scored on a single transaction at a time, since a production API receives one request per authorisation rather than a batch. Following the protocol fixed in Chapter 3, each model received at least 100 discarded warm-up predictions to absorb lazy allocation and cache effects, followed by `N_LATENCY_TRIALS` = 1,000 timed calls using `time.perf_counter()` on randomly drawn validation rows. Because latency distributions are right-skewed, medians and upper percentiles are reported rather than means: p50, p95 and p99. BLAS and OpenMP threading was pinned to one thread (`OMP_NUM_THREADS=1`) so that techniques are comparable and not dependent on core count. Hardware, Python version and library versions are recorded in Table 3's caption [TBD: CPU model, cores, RAM, Python/scikit-learn/XGBoost/LightGBM versions]. The deployment budget is a p99 of 100 ms (`LATENCY_BUDGET_MS`), chosen to sit comfortably inside typical card-network authorisation windows; p99 rather than the median is the binding statistic because a fraud service is judged by its slow tail, not its typical call.
+Each of the 41 fitted (technique, classifier) pairs was scored one transaction at a time, since a production API receives one request per authorisation. Following Chapter 3, each pair received 100 discarded warm-up calls and then 1,000 timed calls (`time.perf_counter()`, garbage collection disabled during timing) on rows drawn at random from the validation split. Because latency is right-skewed, p50, p95 and p99 are reported rather than the mean. BLAS and OpenMP threads were limited to one at run time (`threadpoolctl`; recorded as `threads_during_timing = 1`), so that no result depends on core count; a CPU-to-wall-time check flags any row where pinning failed. Hardware and software are recorded in `experiments/latency_environment.json`: Apple M1 Pro (8 cores, 16 GB), macOS, Python 3.13.6, scikit-learn 1.9.0, XGBoost 3.4.1, LightGBM 4.7.0. The budget is a p99 of 100 ms (`LATENCY_BUDGET_MS`); p99 rather than the median is binding because a fraud service is judged on its slow tail.
 
-Latency was measured on the model object alone, excluding network, serialisation and web-framework overhead. End-to-end latency through the FastAPI service (Chapter 4) is therefore higher, and is reported separately in §5.4.4 [TBD].
+Latency is for the model object alone, excluding network, serialisation and web-framework overhead; end-to-end latency through the FastAPI service (Chapter 4) is higher and is reported separately [TBD].
 
 ### 5.4.2 Results
 
-Table 3 reports, for every technique, fit time, p50/p95/p99 single-record latency, and serialised model size.
+Every one of the 41 pairs meets the budget. The slowest, EasyEnsemble, has a p99 of 35.9 ms (36% of the budget); the next slowest, Balanced Random Forest and the Random Forest variants, sit between 3.7 and 7.2 ms; the remaining 30 pairs are all below 1 ms. Figure 8 plots CV AUC-PR against p99 latency, with the budget as a vertical line. Latency forms three clusters set by the *classifier*, not the treatment:
 
-| Technique | Base model | Fit time (s) | p50 (ms) | p95 (ms) | p99 (ms) | Size (MB) |
-|---|---|---|---|---|---|---|
-| none | [TBD] | [TBD] | [TBD] | [TBD] | [TBD] | [TBD] |
-| random_undersampling | [TBD] | [TBD] | [TBD] | [TBD] | [TBD] | [TBD] |
-| smote | [TBD] | [TBD] | [TBD] | [TBD] | [TBD] | [TBD] |
-| … (15 techniques) | | | | | | |
-| easy_ensemble | [TBD] | [TBD] | [TBD] | [TBD] | [TBD] | [TBD] |
+| Classifier | p50 range across treatments (ms) | Model size range (MB) |
+|---|---|---|
+| Logistic regression | 0.054 – 0.055 | 0.0008 – 0.0009 |
+| Decision tree | 0.047 – 0.049 | 0.006 – 0.090 |
+| XGBoost | 0.076 – 0.080 | 0.10 – 0.29 |
+| Random forest | 3.3 – 3.6 | 0.45 – 10.7 |
+| AdaBoost (EasyEnsemble) | 28.9 | 0.32 |
 
-*Table 3: Fit time and single-record inference latency by technique. Rows to be generated by `src/inference_profiler.py`.*
+*Table 3 (summary; full per-pair table in `table3_latency.csv`): single-record p50 latency and serialised model size. Treatments within a classifier differ by at most a few percent in p50.*
 
-Figure 8 plots validation AUC-PR against p99 latency for every technique, with the 100 ms budget drawn as a vertical line (generated by `scripts/plot_fig8_latency.py`). Techniques in the upper-left quadrant are both accurate and deployable. [TBD: describe which techniques fall left of the line and which, if any, do not.]
+The most accurate region of Figure 8 contains XGBoost pairs at p99 ≈ 0.14–0.23 ms with CV AUC-PR 0.85–0.86 (for example random oversampling, 0.861 at 0.16 ms, and focal loss, 0.856 at 0.14 ms). Random Forest pairs reach the same AUC-PR (0.84–0.85) but at roughly 4 ms, about 25 times slower, so the extra inference cost buys no accuracy. EasyEnsemble is both the slowest (35.9 ms) and well below the leaders in accuracy (0.713).
 
 ### 5.4.3 Interpretation
 
-The central hypothesis, stated in Chapter 3 before any measurement, is that resampling is free at inference time while ensembles are not. The reasoning is mechanical. Random under- and over-sampling, SMOTE and its variants, ADASYN and SOA-S change only the *training set*. The fitted model is the same kind of object as an untreated one, so a SMOTE-trained logistic regression performs the same dot product at inference as its untreated counterpart. Class-weighting and scale-position weighting likewise alter the loss during training, not the structure of the model. Ensemble-style techniques differ: EasyEnsemble fits many independent learners on balanced subsets and must evaluate all of them for every prediction, and RUSBoost and Balanced Random Forest carry similar per-prediction cost proportional to ensemble size.
+The hypothesis stated in Chapter 3, that resampling is free at inference while ensembles are not, is supported, with one qualification. Data-level techniques change only the training set, and the data confirm it: within each classifier, the p50 of every resampled model lies within about 5% of the untreated one (e.g. logistic regression 0.0542 ms untreated against 0.0539–0.0546 under resampling; Random Forest 3.44 ms untreated against 3.32–3.53 ms). Class-weighting and scale-positive weighting behave the same way. The cost is concentrated in the *algorithm-level ensembles* that multiply the model count: EasyEnsemble's p50 is about 530 times logistic regression's, and a 100-tree Random Forest is about 44 times XGBoost's.
 
-If the measurements support this, the practical conclusion is sharp: resampling can be chosen purely on predictive merit, whereas an ensemble must earn a higher accuracy gain to justify its inference cost. [TBD: confirm or refute, and quantify, e.g. "EasyEnsemble p99 was N× that of the matched untreated base model"]. Two outcomes would qualify the hypothesis and should be reported rather than smoothed over: (i) if resampled and untreated models of the same family differ in latency, the cause is almost certainly model *size* — SMOTE-trained tree models typically grow deeper because oversampled minorities create more splits, and deeper trees cost more per prediction; and (ii) if every technique comfortably meets 100 ms, the finding is that latency is not the binding constraint for this dataset and feature count, which is itself useful to a practitioner.
+The qualification is model size. Resampling changes what is *stored*: SMOTE inflates a Random Forest from 1.7 MB (untreated) to 10.7 MB, a 6.3-fold increase, and a SMOTE decision tree is five times the size of an untreated one. Yet inference time is unchanged, because per-prediction cost depends on tree depth, which grows slowly with node count. Size therefore matters for memory and load time (relevant to container cold starts) but not for per-request latency.
 
-Fit time is reported separately because it matters operationally for retraining, not for scoring. Resampling inflates training time (oversampling enlarges the training set; SMOTE-ENN adds a nearest-neighbour cleaning pass), while undersampling shrinks it. [TBD: report the fit-time ordering.]
+One caution on reading p99. Within a classifier, p50 is stable to a few percent while p99 varies by a factor of two to three (logistic regression: 0.065–0.174 ms). With 1,000 trials p99 rests on about ten observations and is dominated by scheduler and cache outliers, so horizontal spread *within* a classifier cluster in Figure 8 is measurement noise, not a technique effect. Across clusters the differences (10× to 500×) are far larger than this noise. A bootstrap interval on p99 [TBD] should accompany the final table.
+
+Fit time is the one place resampling is not free. For Random Forest, mean per-fold fit time rises from 13.0 s untreated to 22.4 s under SMOTE and 29.9 s under ADASYN, while random undersampling cuts it to 0.09 s. XGBoost moves little (0.72 s to 0.88 s under SMOTE). This matters for retraining cadence, not for scoring.
 
 ### 5.4.4 Limitations
 
-Latency was measured on a single machine; absolute numbers will differ in production, so the *ordering* and *ratios* between techniques are the transferable result rather than the milliseconds. The dataset has 29 features, so the findings do not necessarily extend to high-dimensional production feature sets. The measured path excludes feature retrieval, which in real systems is often the dominant cost. Finally, p99 from 1,000 trials rests on roughly ten slow observations and is itself noisy; a bootstrap interval on p99 [TBD] should accompany Table 3.
+Absolute figures are from one laptop-class CPU; the transferable results are the *ordering* and the *ratios*. The dataset has 29 features, and findings may not extend to wide production feature sets. The measured path excludes feature retrieval, often the dominant real cost. Finally, because every pair clears the budget, latency does not discriminate among techniques *within* a classifier on this dataset; its practical effect is on classifier choice. That is itself a useful result for practitioners: the deployability question is answered by the model family, and the imbalance technique can be chosen on predictive and operational merit.
 
 ## 5.5 Error Analysis
 
-> **DRAFT 1.** Confusion matrices and costs below are exact, recovered from Table 1 by `scripts/confusion_from_table1.py`. They cover the **untreated baselines only**, on the **validation** split. Matrices for the 15 techniques, and any analysis of *which* frauds are missed, require the experiment sweep and per-row scores [TBD].
+> **DRAFT 1.** Matrices are pooled over the five training-split CV folds (`experiments/results_raw.csv`; 331 frauds, 192,632 legitimate), generated by `scripts/confusion_cv.py` (Table 7, Figure 9). Thresholds were chosen on the scored fold, so every threshold-dependent number here is **optimistic**. Test-split matrices and operating points (Tables 5 and 6, `notebooks/03_results_analysis.ipynb`) need `data/raw/creditcard.csv` and have not been run in this environment [TBD]. Cost = 100 × FN + 5 × FP (`COST_FN`, `COST_FP`; indicative, sensitivity-tested in Chapter 6).
 
-Aggregate metrics hide the structure of a detector's errors. Two models with similar F1 can differ greatly in the *kind* of mistake they make, and under asymmetric costs that difference decides which is preferable. This section examines the confusion matrices of the baselines, then how the decision threshold shapes them.
+Aggregate metrics hide the structure of a detector's errors. Two models with similar F1 can differ greatly in the *kind* of mistake they make, and under asymmetric costs that decides which is preferable.
 
 ### 5.5.1 Confusion matrices
 
-The validation split contains 41,350 transactions, of which 71 are fraudulent (1:581). Table 4 and Figure 9 give the cells at each model's validation-chosen threshold.
+| Technique / classifier | AUC-PR | TP | FP | FN | TN | Cost |
+|---|---|---|---|---|---|---|
+| none / random forest (best untreated) | 0.845 | 268 | 14 | 63 | 192,618 | 6,370 |
+| random oversampling / XGBoost (best AUC-PR) | 0.861 | 272 | 17 | 59 | 192,615 | 5,985 |
+| focal loss / XGBoost (lowest cost) | 0.856 | 275 | 20 | 56 | 192,612 | 5,700 |
+| SMOTE / XGBoost | 0.851 | 266 | 9 | 65 | 192,623 | 6,545 |
+| random undersampling / decision tree | 0.014 | 306 | 20,400 | 25 | 172,232 | 104,500 |
+| LightGBM `is_unbalance` | 0.024 | 283 | 14,608 | 48 | 178,024 | 77,840 |
 
-| Model | Threshold | TP | FP | FN | TN | Alerts | Cost |
-|---|---|---|---|---|---|---|---|
-| random_forest | 0.440 | 54 | 3 | 17 | 41,276 | 57 | 1,715 |
-| logistic_regression | 0.175 | 49 | 9 | 22 | 41,270 | 58 | 2,245 |
-| xgboost | 0.975 | 45 | 4 | 26 | 41,275 | 49 | 2,620 |
-| decision_tree | 1.000 | 50 | 23 | 21 | 41,256 | 73 | 2,215 |
-| dummy_most_frequent | 0.500 | 0 | 0 | 71 | 41,279 | 0 | 7,100 |
+*Table 7: Pooled CV confusion matrices for six illustrative pairs.*
 
-*Table 4: Validation confusion matrices (stratified split, seed 42). Cost = 100 × FN + 5 × FP (`COST_FN`, `COST_FP`; indicative, sensitivity-tested in Chapter 6).*
+![Figure 9](../figures/fig9_confusion_cv.png)
 
-![Figure 9](../figures/fig_confusion_baselines.png)
+*Figure 9: The matrices of Table 7.*
 
-*Figure 9: Confusion matrices for the untreated baselines at validation-chosen thresholds.*
-
-Three observations follow. First, the tabulated errors are overwhelmingly false negatives, not false positives. The dummy classifier's matrix makes the accuracy paradox concrete: it is correct on 41,279 of 41,350 transactions (99.83%) while detecting nothing. Second, the supervised models differ more in their false positives than their false negatives. Random Forest raises 3 false alarms against 17 misses; the decision tree catches 50 frauds but raises 23 false alarms, consuming analyst time at a precision of 68.5% compared with 94.7%. Third, under the cost model Random Forest is cheapest (1,715) and the decision tree edges logistic regression (2,215 versus 2,245) despite its lower AUC-PR, because the 20:1 cost ratio rewards recall.
-
-The scale of these differences needs care. With 71 frauds, one transaction moves recall by 1.4 percentage points; Random Forest and logistic regression differ by five true positives. These gaps are indicative and should be read alongside the bootstrap intervals of §5.3.
+Three patterns stand out. **First, the leading models are close.** The best pairs miss 56–65 of 331 frauds and raise only 9–20 false alarms. Against the best untreated model, the best treated one catches 4 more frauds (272 against 268), about 1.2 percentage points of recall, at the price of 3 more false alarms. With a fold-to-fold AUC-PR standard deviation of about 0.03, this is consistent with the literature's finding that no technique wins consistently, and it should be read next to the intervals of §5.3. **Second, false negatives drive cost.** In the lowest-cost pair, misses account for 5,600 of 5,700 cost units (98%), so cost differences among good models are differences in missed fraud. Each well-performing model misses roughly one fraud in six (17–20%); whether these are the *same* transactions cannot be established because row-level predictions were not stored [TBD: persist scores to test this and to profile the misses by amount and PCA component]. **Third, the failure cases fail by false positives.** Random undersampling with a decision tree attains the highest recall (306 of 331, 92%) but at 20,400 false alarms, a precision of 1.5% and a cost 18 times that of the best pair.
 
 ### 5.5.2 Threshold discussion
 
-The thresholds in Table 4 show why a 0.5 default is unsafe under extreme imbalance. Logistic regression's best F1 occurs at 0.175, well below 0.5, because its probabilities are compressed toward the majority class. XGBoost's optimum is 0.975, far above it, because boosted scores are strongly separated and overconfident. Random Forest lands near 0.44. The same nominal cut-off would therefore mean very different things across models, which is why thresholds are chosen per model on validation (CLAUDE.md rule 3) and never fixed globally.
+Thresholds were chosen per fold to maximise F1 (`choose_threshold`, rule 3), and they differ enormously between pairs. Untreated logistic regression's best cut is 0.074 on average (range 0.055–0.096), far below 0.5: its probabilities are compressed toward the 0.17% prior. Under oversampling or SMOTE the same classifier's best cut is 1.000 in every fold, and SMOTE/XGBoost's is 0.982. Resampling rebalances the training prior, which inflates the predicted probabilities, and the optimal cut-off moves up to compensate. This is the familiar equivalence of resampling and threshold shifting (Elkan, 2001), and it explains why a fixed 0.5 would misjudge both groups: too high for the untreated, too low for the resampled. Thresholds are therefore not comparable across techniques and must always be tuned per model on validation.
 
-The decision tree's threshold of exactly 1.000 is a warning sign rather than a result. A fully grown tree outputs probabilities of 0 or 1 from pure leaves, so the score has almost no gradation and the "threshold" simply selects leaves that are entirely fraud. Its precision-at-100 of 0.50 equals its recall-at-100 count of 50, meaning that expanding from 73 alerts to 100 added no frauds: ranking below the pure leaves is essentially arbitrary.
+Two warning signs are visible. The first is **instability**: random oversampling/XGBoost's optimal cut ranges from 0.129 to 0.967 across folds (standard deviation 0.32), yet its F1 is almost constant, which suggests a flat optimum that the F1 criterion resolves arbitrarily [TBD: confirm with the threshold sweep of notebook Table 6]. A threshold fixed from a single validation split would therefore carry real sampling noise. The second is **saturation**: where the optimal threshold is exactly 1.000 (decision trees, LightGBM, and most logistic-regression variants), scores take few distinct values near 1, so there is no ranking granularity and any cut below 1 raises a flood of alerts. The 14,608 false alarms of LightGBM's defaults are this effect, not evidence that class weighting is poor in itself.
 
-The alert budget supplies a second view. At the 100-alert capacity (`ALERT_BUDGET`), Random Forest recovers 56 frauds, versus 54 at its F1 threshold with 57 alerts, so the extra 43 alerts yielded two further frauds (marginal precision 4.7%). Logistic regression gains five frauds for 42 additional alerts, and XGBoost five for 51. Whether that marginal yield is worth the review effort is a business decision; the cost ratio gives it a formal basis, and the break-even marginal precision under 100:5 costs is 5%, essentially where Random Forest sits.
+The alert budget gives a second view. At the 100-alert capacity (`ALERT_BUDGET`), the leading pairs achieve precision@100 of 0.57 and recall@100 of 0.86, against recall of 0.81–0.83 at their F1 thresholds with 56–59 alerts. About 40 extra alerts therefore recover roughly three more frauds per fold, a marginal precision of about 6–7%, just above the 5% break-even implied by the 100:5 cost ratio. So with these indicative costs the larger budget is mildly worthwhile; a different cost ratio would flip that, which is why Chapter 6 sensitivity-tests it.
 
-Two caveats govern all of the above. These thresholds were selected on the validation split and evaluated on it, so the matrices are optimistic; the held-out test result is the figure to report in the final dissertation. And the thresholds optimise F1, whereas the cost model weights a missed fraud 20 times a false alarm. A cost-optimal threshold would be lower and would trade more false positives for fewer misses [TBD: recompute with `choose_threshold(objective="cost")` and report the shift].
+Two caveats govern all of this. Matrices from the scored fold are optimistic, and F1-optimal thresholds are not cost-optimal: with a 20:1 cost ratio the cost-minimising threshold lies lower, trading more false positives for fewer misses [TBD: Table 6 operating points on test].
 
-### 5.5.3 What remains
-
-Still outstanding are (i) matrices for all 15 techniques, where I expect resampling to lower thresholds and raise false positives relative to the baselines, as it shifts probability mass toward the minority class; and (ii) a profile of missed frauds (amount, PCA component distribution) to test whether false negatives cluster in particular transaction types. Because V1–V28 are anonymised, any such characterisation will be statistical rather than interpretable, a limitation acknowledged in §5.6 and Chapter 6.
+## 5.6 Explainability (scope-limited)
+SHAP on the selected model. Note the PCA constraint on interpretation.
 
 ## 5.7 Sensitivity Analyses
 Duplicates retained vs removed; temporal vs stratified split.

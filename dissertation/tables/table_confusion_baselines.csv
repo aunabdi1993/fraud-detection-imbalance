@@ -1,6 +1,0 @@
-technique,threshold,tp,fp,fn,tn,n_alerts,total_cost
-random_forest,0.44,54,3,17,41276,57,1715.0
-logistic_regression,0.1751082567539761,49,9,22,41270,58,2245.0
-xgboost,0.9748493432998656,45,4,26,41275,49,2620.0
-decision_tree,1.0,50,23,21,41256,73,2215.0
-dummy_most_frequent,0.5,0,0,71,41279,0,7100.0
