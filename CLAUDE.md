@@ -12,12 +12,9 @@ MSc dissertation. Research question:
 This is **not** a novel-algorithm project. The contribution is a rigorous,
 controlled comparison of existing techniques, plus latency characterisation and
 a working deployed API. The literature review concluded that no technique
-consistently wins (Brandt & Lanzén 2020; Gnip et al. 2021) — that finding is the
+consistently wins (Brandt & Lanzén 2020; Gnip et al. 2021) - that finding is the
 *justification* for a careful comparison, not a weakness. Do not suggest
 inventing a new sampling method.
-
-Submission: **7 January 2027**. Roughly 6–7 hours per week. Prefer finishing a
-small thing properly over starting a large thing.
 
 ## Dataset
 
@@ -68,9 +65,9 @@ src/evaluation.py          DONE   metrics, thresholds, bootstrap, Friedman
 src/config.py              DONE   all experimental constants
 src/preprocessing.py       STUB   Week 13-14  feature engineering
 src/baseline_models.py     DONE   Week 15-16  untreated baselines
-src/imbalance_methods.py   STUB   Month 5-6   the 15 techniques
-src/experiment_runner.py   STUB   Month 5-6   the full sweep
-src/inference_profiler.py  STUB   Month 7-8   latency (Contribution 2)
+src/imbalance_methods.py   DONE   Month 5-6   the 15 techniques
+src/experiment_runner.py   DONE   Month 5-6   the full sweep
+src/inference_profiler.py  DONE   Month 7-8   latency (Contribution 2)
 api/main.py                STUB   Month 7-8   FastAPI service (Contribution 3)
 ```
 
