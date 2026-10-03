@@ -68,3 +68,12 @@ ALL_TECHNIQUES = RESAMPLING_TECHNIQUES + ALGORITHM_TECHNIQUES
 # --- Deployment constraints (Gap 1) ----------------------------------------
 LATENCY_BUDGET_MS = 100.0   # p99 target for real-time scoring
 N_LATENCY_TRIALS = 1000
+
+# --- Serving (api/main.py, Chapter 4) --------------------------------------
+# Override the bundle location with the FRAUD_MODEL_PATH environment variable.
+MODEL_BUNDLE_PATH = MODELS_DIR / "model_bundle.joblib"
+API_MAX_BATCH_ROWS = 10_000          # reject larger CSV uploads with 413
+API_MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+API_REQUEST_TIMEOUT_S = 30.0         # per-request wall-clock limit -> 504
+API_LATENCY_WINDOW = 1000            # recent requests kept for p50/p95/p99
+RAW_FEATURES = [f"V{i}" for i in range(1, 29)] + ["Amount"]

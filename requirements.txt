@@ -23,11 +23,13 @@ mlflow>=2.10
 fastapi>=0.108
 uvicorn>=0.24
 pydantic>=2.5
+python-multipart>=0.0.9   # CSV upload in /batch-predict
 
 # Explainability (Ch.5 sec 5.5, scope-limited)
 shap>=0.44
 
 # Dev
 pytest>=7.4
+httpx>=0.25   # FastAPI TestClient
 jupyter>=1.0
 python-dotenv>=1.0

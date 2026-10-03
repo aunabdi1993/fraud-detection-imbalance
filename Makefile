@@ -1,9 +1,10 @@
-.PHONY: help setup data prepare test lint clean api
+.PHONY: help setup data prepare export test lint clean api
 
 help:
 	@echo "make setup    - create venv and install dependencies"
 	@echo "make data     - download the Kaggle dataset into data/raw"
 	@echo "make prepare  - validate, split and scale; writes data/processed"
+	@echo "make export   - fit and package the model bundle the API serves"
 	@echo "make test     - run the test suite"
 	@echo "make api      - run the scoring API locally"
 	@echo "make clean    - remove caches and processed artefacts"
@@ -17,6 +18,9 @@ data:
 
 prepare:
 	python src/data_loader.py --csv data/raw/creditcard.csv --out data/processed
+
+export:
+	python -m src.export_model --model xgboost
 
 test:
 	pytest tests/ -v
